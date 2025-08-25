@@ -33,37 +33,90 @@ class GoogleCalendarTools:
         3. GOOGLE_ACCESS_TOKEN - Direct access token
         4. GOOGLE_CREDENTIALS_FILE - OAuth2 credentials file (development)
         """
+        print("🔐 Attempting Google Calendar authentication...")
+        print(f"Available environment variables:")
+        print(f"- GOOGLE_SERVICE_ACCOUNT_JSON: {'Set' if os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON') else 'Not set'}")
+        print(f"- GOOGLE_SERVICE_ACCOUNT_FILE: {'Set' if os.getenv('GOOGLE_SERVICE_ACCOUNT_FILE') else 'Not set'}")
+        print(f"- GOOGLE_ACCESS_TOKEN: {'Set' if os.getenv('GOOGLE_ACCESS_TOKEN') else 'Not set'}")
+        print(f"- GOOGLE_CREDENTIALS_FILE: {'Set' if os.getenv('GOOGLE_CREDENTIALS_FILE') else 'Not set'}")
+        print(f"- GOOGLE_CALENDAR_ID: {os.getenv('GOOGLE_CALENDAR_ID', 'Not set')}")
+        
         try:
             # Option 1: Service account JSON as environment variable (most secure, production-ready)
             if os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON"):
                 import json
-                service_account_info = json.loads(os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON"))
-                credentials = service_account.Credentials.from_service_account_info(
-                    service_account_info,
-                    scopes=['https://www.googleapis.com/auth/calendar']
-                )
+                try:
+                    # Try to parse the JSON string from environment variable
+                    service_account_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+                    if service_account_json:
+                        # Clean up the JSON string - remove any extra quotes or escape characters
+                        service_account_json = service_account_json.strip().strip('"').strip("'")
+                        service_account_info = json.loads(service_account_json)
+                        credentials = service_account.Credentials.from_service_account_info(
+                            service_account_info,
+                            scopes=['https://www.googleapis.com/auth/calendar']
+                        )
+                    else:
+                        raise ValueError("GOOGLE_SERVICE_ACCOUNT_JSON environment variable is empty")
+                except json.JSONDecodeError as json_error:
+                    print(f"Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON: {json_error}")
+                    json_content = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON', '')
+                    if json_content:
+                        print(f"JSON content: {json_content[:100]}...")
+                    raise
+                except Exception as e:
+                    print(f"Error processing GOOGLE_SERVICE_ACCOUNT_JSON: {e}")
+                    raise
             # Option 2: Service account file path
             elif os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE"):
+                service_account_file = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE")
+                if not service_account_file:
+                    raise ValueError("GOOGLE_SERVICE_ACCOUNT_FILE environment variable is empty")
+                if not os.path.exists(service_account_file):
+                    raise FileNotFoundError(f"Service account file not found: {service_account_file}")
                 credentials = service_account.Credentials.from_service_account_file(
-                    os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE"),
+                    service_account_file,
                     scopes=['https://www.googleapis.com/auth/calendar']
                 )
             # Option 3: Direct access token (simple but less secure)
             elif os.getenv("GOOGLE_ACCESS_TOKEN"):
+                access_token = os.getenv("GOOGLE_ACCESS_TOKEN")
+                if not access_token:
+                    raise ValueError("GOOGLE_ACCESS_TOKEN environment variable is empty")
                 credentials = Credentials(
-                    token=os.getenv("GOOGLE_ACCESS_TOKEN"),
+                    token=access_token,
                     scopes=['https://www.googleapis.com/auth/calendar']
                 )
             # Option 4: OAuth2 credentials file (development fallback)
             else:
+                credentials_file = os.getenv("GOOGLE_CREDENTIALS_FILE", "token.json")
+                if not os.path.exists(credentials_file):
+                    print(f"Warning: OAuth2 credentials file not found: {credentials_file}")
+                    print("Please set one of the following environment variables:")
+                    print("- GOOGLE_SERVICE_ACCOUNT_JSON: JSON string for service account")
+                    print("- GOOGLE_SERVICE_ACCOUNT_FILE: Path to service account JSON file")
+                    print("- GOOGLE_ACCESS_TOKEN: Direct access token")
+                    print("- GOOGLE_CREDENTIALS_FILE: Path to OAuth2 credentials file")
+                    raise FileNotFoundError(f"OAuth2 credentials file not found: {credentials_file}")
                 credentials = Credentials.from_authorized_user_file(
-                    os.getenv("GOOGLE_CREDENTIALS_FILE", "token.json"),
+                    credentials_file,
                     scopes=['https://www.googleapis.com/auth/calendar']
                 )
             
             self.service = build('calendar', 'v3', credentials=credentials)
+            print("✅ Successfully authenticated with Google Calendar API!")
+            print(f"📅 Using calendar ID: {self.calendar_id}")
         except Exception as e:
-            print(f"Failed to authenticate with Google Calendar: {e}")
+            print(f"❌ Failed to authenticate with Google Calendar: {e}")
+            print("\n🔧 Troubleshooting tips:")
+            print("1. Check your .env file has the correct format")
+            print("2. For GOOGLE_SERVICE_ACCOUNT_JSON, ensure it's a valid JSON string")
+            print("3. For GOOGLE_SERVICE_ACCOUNT_FILE, ensure the file exists and is readable")
+            print("4. For GOOGLE_ACCESS_TOKEN, ensure the token is valid and not expired")
+            print("5. For GOOGLE_CREDENTIALS_FILE, ensure the OAuth2 file exists")
+            print("\n📝 Example .env format:")
+            print("GOOGLE_SERVICE_ACCOUNT_JSON={\"type\":\"service_account\",\"project_id\":\"your-project\"}")
+            print("GOOGLE_CALENDAR_ID=primary")
             self.service = None
     
     def list_events(

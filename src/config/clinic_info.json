@@ -1,0 +1,97 @@
+{
+  "clinic_name": "Advanced Medical Center",
+  "address": {
+    "street": "123 Medical Plaza Drive",
+    "city": "Healthcare City",
+    "state": "CA",
+    "zip_code": "90210",
+    "country": "USA"
+  },
+  "contact": {
+    "phone": "+1-555-123-4567",
+    "fax": "+1-555-123-4568",
+    "email": "info@advancedmedical.com",
+    "emergency": "+1-555-911-0000"
+  },
+  "hours": {
+    "monday": "8:00 AM - 6:00 PM",
+    "tuesday": "8:00 AM - 6:00 PM",
+    "wednesday": "8:00 AM - 6:00 PM",
+    "thursday": "8:00 AM - 6:00 PM",
+    "friday": "8:00 AM - 5:00 PM",
+    "saturday": "9:00 AM - 2:00 PM",
+    "sunday": "Closed"
+  },
+  "services": [
+    "Primary Care",
+    "Specialist Consultations",
+    "Preventive Care",
+    "Diagnostic Testing",
+    "Vaccinations",
+    "Health Screenings",
+    "Chronic Disease Management",
+    "Mental Health Services"
+  ],
+  "specialties": [
+    {
+      "name": "Cardiology",
+      "doctors": ["Dr. Sarah Johnson", "Dr. Michael Chen"],
+      "description": "Heart and cardiovascular health"
+    },
+    {
+      "name": "Dermatology",
+      "doctors": ["Dr. Emily Rodriguez", "Dr. David Kim"],
+      "description": "Skin, hair, and nail conditions"
+    },
+    {
+      "name": "Orthopedics",
+      "doctors": ["Dr. Robert Wilson", "Dr. Lisa Thompson"],
+      "description": "Bone and joint health"
+    },
+    {
+      "name": "Pediatrics",
+      "doctors": ["Dr. Jennifer Lee", "Dr. Carlos Martinez"],
+      "description": "Children's health and development"
+    },
+    {
+      "name": "Internal Medicine",
+      "doctors": ["Dr. Amanda Foster", "Dr. James Brown"],
+      "description": "Adult primary care and chronic conditions"
+    }
+  ],
+  "insurance_plans": [
+    "Blue Cross Blue Shield",
+    "Aetna",
+    "Cigna",
+    "UnitedHealth Group",
+    "Kaiser Permanente",
+    "Humana",
+    "Medicare",
+    "Medicaid"
+  ],
+  "facilities": [
+    "Modern examination rooms",
+    "Digital X-ray equipment",
+    "Laboratory services",
+    "Pharmacy consultation",
+    "Physical therapy",
+    "Mental health counseling",
+    "Telemedicine capabilities"
+  ],
+  "policies": {
+    "appointment_cancellation": "24 hours notice required",
+    "late_arrival": "Patients arriving more than 15 minutes late may need to reschedule",
+    "prescription_refills": "48 hours notice for prescription refills",
+    "insurance_verification": "Please bring insurance card to every visit"
+  },
+  "covid_19": {
+    "vaccination_available": true,
+    "testing_available": true,
+    "safety_measures": [
+      "Masks required for all patients",
+      "Enhanced cleaning protocols",
+      "Social distancing in waiting areas",
+      "Telemedicine appointments available"
+    ]
+  }
+}

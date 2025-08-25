@@ -8,9 +8,11 @@ from langgraph.checkpoint.memory import MemorySaver
 from src.agents.orchestrator_agent import OrchestratorAgent
 from src.agents.calendar_agent import CalendarAgent
 from src.agents.notification_agent import NotificationAgent
+from src.agents.clinic_info_agent import ClinicInfoAgent
 from src.tools.database_tools import DatabaseTools
 from src.tools.google_calendar_tools import GoogleCalendarTools
 from src.tools.whatsapp_tools import WhatsAppTools
+from src.tools.clinic_info_tools import ClinicInfoTools
 
 
 class AgentState(TypedDict):
@@ -36,11 +38,13 @@ class MedicalSecretaryGraph:
         # Initialize tools
         self.calendar_tools = GoogleCalendarTools()
         self.whatsapp_tools = WhatsAppTools()
+        self.clinic_info_tools = ClinicInfoTools()
         
         # Initialize agents (will be set with session later)
         self.orchestrator_agent = None
         self.calendar_agent = None
         self.notification_agent = None
+        self.clinic_info_agent = None
         
         # Create the graph
         self.graph = self._create_graph()
@@ -48,11 +52,13 @@ class MedicalSecretaryGraph:
     
     def _initialize_agents(self, db_session):
         """Initialize agents with database session."""
-        if self.orchestrator_agent is None or self.calendar_agent is None or self.notification_agent is None:
+        if (self.orchestrator_agent is None or self.calendar_agent is None or 
+            self.notification_agent is None or self.clinic_info_agent is None):
             db_tools = DatabaseTools(db_session)
             self.orchestrator_agent = OrchestratorAgent(db_tools, self.calendar_tools)
             self.calendar_agent = CalendarAgent(db_tools, self.calendar_tools)
             self.notification_agent = NotificationAgent(self.whatsapp_tools, db_tools)
+            self.clinic_info_agent = ClinicInfoAgent(self.clinic_info_tools)
         
         # Create the graph
         self.graph = self._create_graph()
@@ -146,7 +152,7 @@ class MedicalSecretaryGraph:
         user_message: str,
         conversation_state: Dict[str, Any] = None,
         db_session = None,
-        channel_id: str = None,
+        channel_id: str | None = None,
         channel_type: str = "web"
     ) -> Dict[str, Any]:
         """Process a user message through the graph."""

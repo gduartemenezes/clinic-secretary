@@ -16,6 +16,10 @@ class CalendarAgent:
         """Initialize the Calendar Agent."""
         self.db_tools = db_tools
         self.calendar_tools = calendar_tools
+        
+        # Agent personality
+        self.agent_name = "Sarah"
+        self.clinic_name = "HealthFirst Medical Clinic"
     
     def process_scheduling_request(
         self,
@@ -34,8 +38,8 @@ class CalendarAgent:
         missing_params = [param for param in required_params if param not in collected_params]
         
         if missing_params:
-            # Ask for missing information
-            response = self._ask_for_missing_params(missing_params)
+            # Ask for missing information in a natural way
+            response = self._ask_for_missing_params_naturally(missing_params, collected_params)
             return {
                 "response": response,
                 "collected_params": collected_params,
@@ -51,13 +55,25 @@ class CalendarAgent:
         extracted_info = {}
         message_lower = user_message.lower()
         
-        # Extract date/time information
+        # Extract date information with natural language processing
         if "today" in message_lower:
             extracted_info["date"] = datetime.now().date()
         elif "tomorrow" in message_lower:
             extracted_info["date"] = (datetime.now() + timedelta(days=1)).date()
+        elif "next week" in message_lower:
+            extracted_info["date"] = (datetime.now() + timedelta(days=7)).date()
+        elif "this week" in message_lower:
+            # Find next available day this week
+            current_day = datetime.now()
+            days_ahead = 0
+            while days_ahead < 7:
+                check_date = current_day + timedelta(days=days_ahead)
+                if check_date.weekday() < 5:  # Monday to Friday
+                    extracted_info["date"] = check_date.date()
+                    break
+                days_ahead += 1
         
-        # Extract time information
+        # Extract time information with natural language processing
         if "morning" in message_lower:
             extracted_info["time_preference"] = "morning"
             extracted_info["time"] = "09:00"
@@ -67,6 +83,12 @@ class CalendarAgent:
         elif "evening" in message_lower:
             extracted_info["time_preference"] = "evening"
             extracted_info["time"] = "17:00"
+        elif "early" in message_lower:
+            extracted_info["time_preference"] = "early"
+            extracted_info["time"] = "08:00"
+        elif "late" in message_lower:
+            extracted_info["time_preference"] = "late"
+            extracted_info["time"] = "16:00"
         
         # Extract specific time patterns
         import re
@@ -80,11 +102,30 @@ class CalendarAgent:
                 hour = 0
             extracted_info["time"] = f"{hour:02d}:00"
         
-        # Extract appointment type
-        appointment_types = ["consultation", "checkup", "follow-up", "emergency"]
-        for apt_type in appointment_types:
-            if apt_type in message_lower:
+        # Extract appointment type with better recognition
+        appointment_types = {
+            "consultation": ["consultation", "consult", "visit", "see doctor"],
+            "checkup": ["checkup", "check up", "check-up", "physical", "exam", "examination"],
+            "follow-up": ["follow up", "follow-up", "followup", "follow"],
+            "emergency": ["emergency", "urgent", "immediate"],
+            "routine": ["routine", "regular", "annual", "yearly"],
+            "specialist": ["specialist", "specialty", "specialized"]
+        }
+        
+        for apt_type, keywords in appointment_types.items():
+            if any(keyword in message_lower for keyword in keywords):
                 extracted_info["appointment_type"] = apt_type
+                break
+        
+        # Extract doctor specialty
+        specialties = [
+            "general", "family", "internal medicine", "cardiology", "dermatology",
+            "orthopedics", "pediatrics", "gynecology", "neurology", "psychiatry"
+        ]
+        
+        for specialty in specialties:
+            if specialty in message_lower:
+                extracted_info["doctor_specialty"] = specialty
                 break
         
         # Combine date and time if both are available
@@ -98,22 +139,56 @@ class CalendarAgent:
         
         return extracted_info
     
-    def _ask_for_missing_params(self, missing_params: List[str]) -> str:
-        """Generate a response asking for missing parameters."""
+    def _ask_for_missing_params_naturally(
+        self, 
+        missing_params: List[str], 
+        collected_params: Dict[str, Any]
+    ) -> str:
+        """Generate natural responses asking for missing parameters."""
+        patient_name = collected_params.get("patient_name", "")
+        
+        # Personalized responses based on what we already know
         if "patient_name" in missing_params:
-            return "What is your name?"
+            if patient_name:
+                return f"Thanks {patient_name}! I just need a few more details to schedule your appointment. What is your phone number?"
+            else:
+                return "I'd be happy to help you schedule an appointment! To get started, what's your name?"
+        
         elif "patient_phone" in missing_params:
-            return "What is your phone number?"
+            if patient_name:
+                return f"Perfect {patient_name}! I just need your phone number to complete the scheduling. What's the best number to reach you at?"
+            else:
+                return "Great! I just need your phone number to complete the scheduling. What's the best number to reach you at?"
+        
         elif "date" in missing_params:
-            return "What date would you like to schedule the appointment for?"
+            if patient_name:
+                return f"Thanks {patient_name}! What date would work best for you? You can say 'tomorrow', 'next week', or give me a specific date."
+            else:
+                return "What date would work best for you? You can say 'tomorrow', 'next week', or give me a specific date."
+        
         elif "time" in missing_params:
-            return "What time would you prefer for the appointment?"
+            if patient_name:
+                return f"Perfect {patient_name}! What time of day would you prefer? I have morning, afternoon, and evening slots available."
+            else:
+                return "What time of day would you prefer? I have morning, afternoon, and evening slots available."
+        
         elif "doctor_specialty" in missing_params:
-            return "What type of doctor do you need to see?"
+            if patient_name:
+                return f"Thanks {patient_name}! What type of doctor do you need to see? I can help with general practitioners, specialists, or specific medical areas."
+            else:
+                return "What type of doctor do you need to see? I can help with general practitioners, specialists, or specific medical areas."
+        
         elif "appointment_type" in missing_params:
-            return "What type of appointment do you need?"
+            if patient_name:
+                return f"Thanks {patient_name}! What type of appointment do you need? For example, a consultation, checkup, follow-up, or something else?"
+            else:
+                return "What type of appointment do you need? For example, a consultation, checkup, follow-up, or something else?"
+        
         else:
-            return "I need some additional information to schedule your appointment. Could you please provide more details?"
+            if patient_name:
+                return f"I need a few more details to schedule your appointment, {patient_name}. Could you please provide more information about what you need?"
+            else:
+                return "I need a few more details to schedule your appointment. Could you please provide more information about what you need?"
     
     def _schedule_appointment(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Attempt to schedule the appointment."""
@@ -130,11 +205,21 @@ class CalendarAgent:
             # For now, we'll use placeholder values for patient_id and doctor_id
             # In a real implementation, you'd look these up or create them
             
+            # Ensure we have a valid datetime
+            appointment_datetime = params.get("datetime")
+            if not appointment_datetime:
+                return {
+                    "response": "I need to know when you'd like to schedule the appointment. What date and time would you prefer?",
+                    "collected_params": params,
+                    "required_params": ["datetime"],
+                    "status": "collecting_info"
+                }
+            
             # Create appointment in database
             appointment = self.db_tools.create_appointment(
                 patient_id=1,  # Placeholder - should be looked up
                 doctor_id=1,   # Placeholder - should be looked up
-                appointment_datetime=params.get("datetime"),
+                appointment_datetime=appointment_datetime,
                 appointment_type=params.get("appointment_type", "consultation"),
                 notes=params.get("notes")
             )
@@ -142,14 +227,26 @@ class CalendarAgent:
             # Create event in Google Calendar
             calendar_event = self.calendar_tools.create_event(
                 summary=f"Appointment: {params.get('patient_name', 'Patient')}",
-                start_time=params.get("datetime"),
-                end_time=params.get("datetime") + timedelta(hours=1),
+                start_time=appointment_datetime,
+                end_time=appointment_datetime + timedelta(hours=1),
                 description=f"Appointment Type: {params.get('appointment_type', 'consultation')}",
                 location="Medical Clinic"
             )
             
+            # Generate natural confirmation message
+            patient_name = params.get('patient_name', '')
+            appointment_type = params.get('appointment_type', 'appointment')
+            formatted_datetime = appointment_datetime.strftime('%B %d, %Y at %I:%M %p')
+            
+            if patient_name:
+                response = f"Perfect {patient_name}! I've successfully scheduled your {appointment_type} for {formatted_datetime}. You'll receive a confirmation message shortly with all the details."
+            else:
+                response = f"Excellent! I've successfully scheduled your {appointment_type} for {formatted_datetime}. You'll receive a confirmation message shortly with all the details."
+            
+            response += "\n\nIs there anything else I can help you with today?"
+            
             return {
-                "response": f"Great! I've scheduled your {params.get('appointment_type', 'appointment')} for {params.get('datetime').strftime('%B %d, %Y at %I:%M %p')}. You'll receive a confirmation shortly.",
+                "response": response,
                 "collected_params": params,
                 "required_params": [],
                 "status": "completed",
@@ -158,8 +255,14 @@ class CalendarAgent:
             }
             
         except Exception as e:
+            # Handle errors gracefully with natural language
+            error_response = f"I'm sorry, but I encountered an issue while scheduling your appointment. "
+            error_response += "This sometimes happens due to system updates or temporary issues. "
+            error_response += "Could you please try again in a moment, or if the problem persists, "
+            error_response += "feel free to call our office directly and I'll make sure they help you right away."
+            
             return {
-                "response": f"I'm sorry, but I encountered an error while scheduling your appointment: {str(e)}. Please try again or contact our office directly.",
+                "response": error_response,
                 "collected_params": params,
                 "required_params": params.get("required_params", []),
                 "status": "error"

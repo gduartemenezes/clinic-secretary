@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  medical-secretary:
+    build: .
+    container_name: medical-secretary-ai
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./medical_secretary.db
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - medical-network
+
+  Optional: Add PostgreSQL for production
+  postgres:
+    image: postgres:15-alpine
+    container_name: medical-secretary-db
+    environment:
+      POSTGRES_DB: medical_secretary
+      POSTGRES_USER: medical_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - medical-network
+
+networks:
+  medical-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

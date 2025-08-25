@@ -25,7 +25,7 @@ class WhatsAppTools:
         if not all([self.access_token, self.phone_number_id]):
             print("Warning: Missing required Meta API credentials")
         
-        self.base_url = "https://graph.facebook.com/v18.0"
+        self.base_url = os.getenv("META_BASE_URL", "https://graph.facebook.com/v18.0")
     
     def send_text_message(
         self,

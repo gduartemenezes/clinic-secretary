@@ -104,6 +104,56 @@ uv run uvicorn src.main:app --host 0.0.0.0 --port 8000
 - `POST /webhook_test` - Test webhook processing
 - `POST /test_whatsapp` - Test WhatsApp message sending
 
+### Clinic Information (Phase 3)
+- `GET /clinic/info` - Get general clinic information
+- `GET /clinic/search` - Search clinic information
+- `GET /clinic/specialty/{name}` - Get specialty information
+- `GET /clinic/insurance/{name}` - Check insurance acceptance
+
+### Enhanced Appointment Management (Phase 3)
+- `GET /appointments/date/{date}` - Get appointments by date
+- `GET /appointments/upcoming` - Get upcoming appointments
+- `PUT /appointments/{id}/status` - Update appointment status
+- `PUT /appointments/{id}/datetime` - Update appointment date/time
+- `GET /appointments/statistics` - Get appointment statistics
+
+### Doctor Interface (Phase 4)
+- `GET /` - Doctor interface (HTML)
+- `GET /doctor` - Doctor interface (HTML)
+- `GET /static/{file}` - Static assets (CSS, JS)
+
+## Docker Deployment
+
+### Building and Running with Docker
+
+1. **Build the Docker image:**
+   ```bash
+   docker build -t medical-secretary-ai .
+   ```
+
+2. **Run with Docker Compose (recommended):**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Run with Docker directly:**
+   ```bash
+   docker run -d --name medical-secretary -p 8000:8000 medical-secretary-ai
+   ```
+
+4. **Access the application:**
+   - API: http://localhost:8000
+   - Doctor Interface: http://localhost:8000/doctor
+   - Health Check: http://localhost:8000/health
+
+### Docker Compose Configuration
+
+The `docker-compose.yml` file includes:
+- Medical Secretary AI service
+- Optional PostgreSQL database (commented out)
+- Health checks and restart policies
+- Volume mounts for data persistence
+
 ## Testing the Agent
 
 Use the `/test_agent` endpoint to test the AI secretary:
@@ -160,14 +210,19 @@ curl -X POST "http://localhost:8000/test_whatsapp"
 - ✅ WhatsApp message sending capabilities
 - ✅ Template message support for structured notifications
 
-### Phase 3: Enhanced Capabilities
-- Clinic information agent
-- Complete CRUD operations
-- Error handling improvements
+### Phase 3: Enhanced Capabilities ✅
+- ✅ Clinic information agent with comprehensive clinic data
+- ✅ Complete CRUD operations for appointments
+- ✅ Enhanced error handling and fallback logic
+- ✅ Emergency intent detection and routing
+- ✅ Advanced appointment search and statistics
+- ✅ Clinic information search and querying
 
-### Phase 4: Doctor Interface & Deployment
-- Web interface for doctors
-- Docker containerization
+### Phase 4: Doctor Interface & Deployment ✅
+- ✅ Web interface for doctors with modern UI
+- ✅ Docker containerization and deployment
+- ✅ Comprehensive API endpoints for UI functionality
+- ✅ Responsive design for all devices
 - Production deployment
 
 ## Contributing
